@@ -1,0 +1,80 @@
+﻿@model CodeFirst.Hero
+
+@{
+    ViewBag.Title = "Информация о герое";
+}
+<br />
+<button type="button" class="btn btn-default btn-lg" onclick="window.location.href = '/Hero/Index'" hidden><span class="glyphicon glyphicon-chevron-left"></span> Назад</button>
+<button type="button" class="btn btn-default btn-lg" onclick="window.location.href = '/Hero/EditHero'" hidden><span class="glyphicon glyphicon-pencil"></span> Редактировать героя</button>
+
+        <h2>@Html.DisplayFor(model => model.Name)</h2>
+
+        <div id="modDialog" class="modal fade">
+            <div id="dialogContent" class="modal-dialog"></div>
+        </div>
+
+        <div>
+            <hr />
+            <div class="row">
+                <div class="col-md-4">
+                    @Html.Raw("<img style='width: 100%; border: 1px solid black; box - shadow: 0 0 7px black;' src=\"data:image/png;base64,"
+                                    + Convert.ToBase64String(Model.Image.Img) + "\" class='img-thumbnail'/>")
+                    <br />
+
+                    <table class="table">
+                        <tr>
+                            <th>
+
+                            </th>
+                            <th>
+
+                            </th>
+                            <th></th>
+                        </tr>
+
+                        @foreach (var item in Model.Powers)
+                        {
+                            <tr>
+                                <td>
+                                    @Html.Raw("<img style='width: 40px; border-radius: 50%; border: 1px solid black; box - shadow: 0 0 7px black;' src=\"data:image/png;base64,"
+                                + Convert.ToBase64String(item.Image.Img) + "\" />")
+                                </td>
+                                <td align="center">
+                                    @Html.DisplayFor(modelItem => item.Name)
+                                </td>
+                                <td>
+                                    @Html.ActionLink("Удалить", "DeletePower", new { idPower = item.Id }, null)
+                                </td>
+                            </tr>
+                        }
+
+                    </table>
+                    <button id="ListPowers" type="button" class="btn btn-default btn-lg"><span class="glyphicon glyphicon-plus"></span> Добавить супер способность</button>
+
+                </div>
+                <div class="col-md-8">
+                    <pre>@Html.DisplayFor(model => model.Description)</pre>
+                </div>
+            </div>
+
+
+        </div>
+
+
+        @section scripts
+{
+            <script type="text/javascript">
+                $(function () {
+                    $.ajaxSetup({ cache: false });
+                    $('#ListPowers').click(function () {
+                        $.get("/Hero/ListPowers/", function (data) {
+                            $('#dialogContent').html(data);
+                            $('#modDialog').modal('show');
+                        });
+                    });
+                });
+            </script>
+        }
+
+
+
