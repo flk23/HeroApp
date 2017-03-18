@@ -72,6 +72,18 @@ namespace CodeFirst
         public string Description { get; set; }
 
         /// <summary>
+        /// Очки опыта
+        /// </summary>
+        [Display(Name = "XP")]
+        public int XP { get; set; }
+
+        /// <summary>
+        /// Уровень
+        /// </summary>
+        [Display(Name = "Уровень")]
+        public int Level { get; set; }
+
+        /// <summary>
         /// ССылка на изображение
         /// </summary>
         [Display(Name = "Изображение")]

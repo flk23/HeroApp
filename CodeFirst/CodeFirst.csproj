@@ -50,12 +50,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="HeroContext.cs" />
+    <Compile Include="Migrations\201703151952442_InitialCreate.cs" />
+    <Compile Include="Migrations\201703151952442_InitialCreate.Designer.cs">
+      <DependentUpon>201703151952442_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201703171654598_MigrateDB.cs" />
+    <Compile Include="Migrations\201703171654598_MigrateDB.Designer.cs">
+      <DependentUpon>201703171654598_MigrateDB.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Model.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201703151952442_InitialCreate.resx">
+      <DependentUpon>201703151952442_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201703171654598_MigrateDB.resx">
+      <DependentUpon>201703171654598_MigrateDB.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

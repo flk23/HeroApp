@@ -11,15 +11,14 @@ namespace HeroApp.Controllers
     [Authorize]
     public class PowerController : Controller
     {
-        private static HeroContext _db = new HeroContext();
-        HeroRepository HeroRep = new HeroRepository(_db);
-        PowerRepository PowerRep = new PowerRepository(_db);
-        ImageRepository ImgRep = new ImageRepository(_db);
+        private static readonly HeroContext _db = new HeroContext();
+        readonly PowerRepository _powerRep = new PowerRepository(_db);
+        readonly ImageRepository _imgRep = new ImageRepository(_db);
 
         // GET: Power
         public ActionResult Index()
         {
-            return View(PowerRep.List());
+            return View(_powerRep.List());
         }
 
         public ActionResult AddPower()
@@ -40,11 +39,11 @@ namespace HeroApp.Controllers
                 }
                 // установка массива байтов
                 Image newImage = new Image(imageData);
-                ImgRep.Add(newImage);
+                _imgRep.Add(newImage);
 
                 newPower.Id = Guid.NewGuid();
                 newPower.Image = newImage;
-                PowerRep.Add(newPower);
+                _powerRep.Add(newPower);
 
                 return RedirectToAction("Index");
             }
@@ -53,8 +52,8 @@ namespace HeroApp.Controllers
 
         public ActionResult Delete(Guid idPower)
         {
-            var power = PowerRep.Get(idPower);
-            PowerRep.Remove(power);
+            var power = _powerRep.Get(idPower);
+            _powerRep.Remove(power);
             return RedirectToAction("Index");
         }
     }

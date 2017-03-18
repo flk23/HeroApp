@@ -12,15 +12,15 @@ namespace HeroApp.Controllers
     [Authorize]
     public class HeroController : Controller
     {
-        private static HeroContext _db = new HeroContext();
-        HeroRepository HeroRep = new HeroRepository(_db);
-        PowerRepository PowerRep = new PowerRepository(_db);
-        ImageRepository ImgRep = new ImageRepository(_db);
+        private static readonly HeroContext _db = new HeroContext();
+        readonly HeroRepository _heroRep = new HeroRepository(_db);
+        readonly PowerRepository _powerRep = new PowerRepository(_db);
+        readonly ImageRepository _imgRep = new ImageRepository(_db);
 
         // GET: Hero
         public ActionResult Index()
         {
-            return View(HeroRep.List());
+            return View(_heroRep.List());
         }
 
         public ActionResult AddHero()
@@ -33,7 +33,7 @@ namespace HeroApp.Controllers
         {
             if (ModelState.IsValid && uploadImage != null)
             {
-                byte[] imageData = null;
+                byte[] imageData;
                 // считываем переданный файл в массив байтов
                 using (var binaryReader = new BinaryReader(uploadImage.InputStream))
                 {
@@ -41,11 +41,11 @@ namespace HeroApp.Controllers
                 }
                 // установка массива байтов
                 Image newImage = new Image(imageData);
-                ImgRep.Add(newImage);
+                _imgRep.Add(newImage);
 
                 newHero.Id = Guid.NewGuid();
                 newHero.Image = newImage;
-                HeroRep.Add(newHero);
+                _heroRep.Add(newHero);
 
                 return RedirectToAction("Index");
             }
@@ -54,24 +54,32 @@ namespace HeroApp.Controllers
 
         public ActionResult Details(Guid idHero)
         {
-            var hero = HeroRep.Get(idHero);
+            var hero = _heroRep.Get(idHero);
             TempData["IdHero"] = idHero;
+            LevelSystem level = new LevelSystem(hero.XP);
+            ViewBag.MinXP = level.MinXP;
+            ViewBag.MaxXP = level.MaxXP;
+            ViewBag.XPinPercent = (int)level.XPinPercent;
+            
             return View(hero);
         }
 
         public ActionResult ListPowers()
         {
-            var allowPowers = PowerRep.List();
+            var allowPowers = _powerRep.List();
 
             Guid idHero = new Guid(TempData["IdHero"].ToString());
             TempData["IdHero"] = idHero;
 
-            var hero = _db.Heroes.FirstOrDefault(h => h.Id == idHero);
-            var addedPowers = hero.Powers.ToList();
-
-            foreach (var addedPower in addedPowers)
+            var hero = _heroRep.Get(idHero);
+            if (hero.Powers != null)
             {
-                allowPowers.Remove(addedPower);
+                var addedPowers = hero.Powers.ToList();
+
+                foreach (var addedPower in addedPowers)
+                {
+                    allowPowers.Remove(addedPower);
+                }
             }
 
             return PartialView(allowPowers);
@@ -80,9 +88,9 @@ namespace HeroApp.Controllers
         public ActionResult AddPowerToHero(Guid idPower)
         {
             Guid idHero = new Guid(TempData["IdHero"].ToString());
-            var Hero = HeroRep.Get(idHero);
-            var Power = PowerRep.Get(idPower);
-            Hero.Powers.Add(Power);
+            var hero = _heroRep.Get(idHero);
+            var power = _powerRep.Get(idPower);
+            hero.Powers.Add(power);
             _db.SaveChanges();
 
             return RedirectToAction("Details", new { idHero });
@@ -91,9 +99,22 @@ namespace HeroApp.Controllers
         public ActionResult DeletePower(Guid idPower)
         {
             Guid idHero = new Guid(TempData["IdHero"].ToString());
-            var hero = HeroRep.Get(idHero);
-            var power = PowerRep.Get(idPower);
+            var hero = _heroRep.Get(idHero);
+            var power = _powerRep.Get(idPower);
             hero.Powers.Remove(power);
+            _db.SaveChanges();
+
+            return RedirectToAction("Details", new { idHero });
+        }
+
+        public ActionResult AddXP(int xp)
+        {
+            Guid idHero = new Guid(TempData["IdHero"].ToString());
+            var hero = _heroRep.Get(idHero);
+            hero.XP += xp;
+            LevelSystem level = new LevelSystem(hero.XP);
+            hero.Level = level.Level;
+
             _db.SaveChanges();
 
             return RedirectToAction("Details", new { idHero });
@@ -101,8 +122,8 @@ namespace HeroApp.Controllers
 
         public ActionResult DeleteHero(Guid idHero)
         {
-            var hero = HeroRep.Get(idHero);
-            HeroRep.Remove(hero);
+            var hero = _heroRep.Get(idHero);
+            _heroRep.Remove(hero);
 
             return RedirectToAction("Index");
         }
@@ -110,7 +131,7 @@ namespace HeroApp.Controllers
         public ActionResult EditHero()
         {
             Guid idHero = new Guid(TempData["IdHero"].ToString());
-            var editHero = HeroRep.Get(idHero);
+            var editHero = _heroRep.Get(idHero);
             return View(editHero);
         }
 
@@ -119,13 +140,13 @@ namespace HeroApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var updateHero = HeroRep.Get(editHero.Id);
+                var updateHero = _heroRep.Get(editHero.Id);
                 updateHero.Name = editHero.Name;
                 updateHero.Description = editHero.Description;
 
                 if (uploadImage != null)
                 {
-                    byte[] imageData = null;
+                    byte[] imageData;
                     // считываем переданный файл в массив байтов
                     using (var binaryReader = new BinaryReader(uploadImage.InputStream))
                     {
