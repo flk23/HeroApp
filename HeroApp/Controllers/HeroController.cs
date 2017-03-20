@@ -4,9 +4,11 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using HeroApp.Models;
-using CodeFirst;
 using System.IO;
+using AutoMapper;
+using CodeFirst.Models;
 using CodeFirst.Repositories;
+using HeroApp.Models.ViewModels;
 
 namespace HeroApp.Controllers
 {
@@ -27,7 +29,12 @@ namespace HeroApp.Controllers
         // GET: Hero
         public ActionResult Index()
         {
-            return View(_heroRep.List());
+            // Настройка AutoMapper
+            Mapper.Initialize(cfg => cfg.CreateMap<Hero, HeroViewModel>());
+            // сопоставление
+            var heroes = Mapper.Map<List<Hero>, List<HeroViewModel>>(_heroRep.List());
+
+            return View(heroes);
         }
 
         public ActionResult AddHero()
@@ -36,7 +43,7 @@ namespace HeroApp.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddHero(Hero newHero, HttpPostedFileBase uploadImage)
+        public ActionResult AddHero(HeroViewModel newHeroViewModel, HttpPostedFileBase uploadImage)
         {
             if (ModelState.IsValid && uploadImage != null)
             {
@@ -50,8 +57,14 @@ namespace HeroApp.Controllers
                 Image newImage = new Image(imageData);
                 _imgRep.Add(newImage);
 
-                newHero.Id = Guid.NewGuid();
-                newHero.Image = newImage;
+                newHeroViewModel.Id = Guid.NewGuid();
+                newHeroViewModel.Image = newImage;
+
+                // Настройка AutoMapper
+                Mapper.Initialize(cfg => cfg.CreateMap<HeroViewModel, Hero>());
+                // сопоставление
+                Hero newHero = Mapper.Map<HeroViewModel, Hero>(newHeroViewModel);
+
                 _heroRep.Add(newHero);
 
                 return RedirectToAction("Index");
@@ -62,22 +75,22 @@ namespace HeroApp.Controllers
         public ActionResult Details(Guid idHero)
         {
             var hero = _heroRep.Get(idHero);
-            TempData["IdHero"] = idHero;
-            LevelSystem level = new LevelSystem(hero.XP);
-            ViewBag.MinXP = level.MinXP;
-            ViewBag.MaxXP = level.MaxXP;
-            ViewBag.XPinPercent = (int)level.XPinPercent;
+            // Настройка AutoMapper
+            Mapper.Initialize(cfg => cfg.CreateMap<Hero, HeroViewModel>());
+            // сопоставление
+            HeroViewModel heroViewModel = Mapper.Map<Hero, HeroViewModel>(hero);
+
+            LevelSystem level = new LevelSystem(heroViewModel.XP);
+            heroViewModel.MinXP = (int)level.MinXP;
+            heroViewModel.MaxXP = (int)level.MaxXP;
+            heroViewModel.XPinPercent = (int)level.XPinPercent;
             
-            return View(hero);
+            return View(heroViewModel);
         }
 
-        public ActionResult ListPowers()
+        public ActionResult ListPowers(Guid idHero)
         {
             var allowPowers = _powerRep.List();
-
-            Guid idHero = new Guid(TempData["IdHero"].ToString());
-            TempData["IdHero"] = idHero;
-
             var hero = _heroRep.Get(idHero);
             if (hero.Powers != null)
             {
@@ -90,12 +103,20 @@ namespace HeroApp.Controllers
                 }
             }
 
-            return PartialView(allowPowers);
+            // Настройка AutoMapper
+            Mapper.Initialize(cfg => cfg.CreateMap<Power, PowerViewModel>());
+            // сопоставление
+            var allowPowersViewModel = Mapper.Map<List<Power>, List<PowerViewModel>>(allowPowers);
+            if (allowPowersViewModel.Count != 0)
+            {
+                allowPowersViewModel.FirstOrDefault().IdHero = idHero;
+            }
+
+            return PartialView(allowPowersViewModel);
         }
 
-        public ActionResult AddPowerToHero(Guid idPower)
+        public ActionResult AddPowerToHero(Guid idPower, Guid idHero)
         {
-            Guid idHero = new Guid(TempData["IdHero"].ToString());
             var hero = _heroRep.Get(idHero);
             var power = _powerRep.Get(idPower);
             if (hero.Powers == null)
@@ -103,23 +124,23 @@ namespace HeroApp.Controllers
                 hero.Powers = new List<Power>();
             }
             hero.Powers.Add(power);
+            _heroRep.Update(hero);
 
             return RedirectToAction("Details", new { idHero });
         }
 
-        public ActionResult DeletePower(Guid idPower)
+        public ActionResult DeletePower(Guid idPower, Guid idHero)
         {
-            Guid idHero = new Guid(TempData["IdHero"].ToString());
             var hero = _heroRep.Get(idHero);
             var power = _powerRep.Get(idPower);
             hero.Powers.Remove(power);
+            _heroRep.Update(hero);
 
             return RedirectToAction("Details", new { idHero });
         }
 
-        public ActionResult AddXP(int xp)
+        public ActionResult AddXP(int xp, Guid idHero)
         {
-            Guid idHero = new Guid(TempData["IdHero"].ToString());
             var hero = _heroRep.Get(idHero);
             hero.XP += xp;
             LevelSystem level = new LevelSystem(hero.XP);
@@ -137,15 +158,19 @@ namespace HeroApp.Controllers
             return RedirectToAction("Index");
         }
 
-        public ActionResult EditHero()
+        public ActionResult EditHero(Guid idHero)
         {
-            Guid idHero = new Guid(TempData["IdHero"].ToString());
             var editHero = _heroRep.Get(idHero);
-            return View(editHero);
+            // Настройка AutoMapper
+            Mapper.Initialize(cfg => cfg.CreateMap<Hero, HeroViewModel>());
+            // сопоставление
+            HeroViewModel heroViewModel = Mapper.Map<Hero, HeroViewModel>(editHero);
+
+            return View(heroViewModel);
         }
 
         [HttpPost]
-        public ActionResult EditHero(Hero editHero, HttpPostedFileBase uploadImage)
+        public ActionResult EditHero(HeroViewModel editHero, HttpPostedFileBase uploadImage)
         {
             if (ModelState.IsValid)
             {

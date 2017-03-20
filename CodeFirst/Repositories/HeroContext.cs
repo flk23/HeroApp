@@ -1,14 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
-using Ninject;
-
-//using Ninject;
-//using Ninject.Parameters;
-//using Ninject.Extensions.Conventions;
-//using Ninject.Syntax;
-//using Ninject.Web.Common;
+﻿using System.Data.Entity;
+using CodeFirst.Models;
 
 namespace CodeFirst.Repositories
 {

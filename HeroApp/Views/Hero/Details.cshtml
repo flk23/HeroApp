@@ -1,32 +1,32 @@
-﻿@model CodeFirst.Hero
+﻿@model HeroApp.Models.ViewModels.HeroViewModel
 
 @{
     ViewBag.Title = "Информация о герое";
 }
 <br />
 <button type="button" class="btn btn-default btn-lg" onclick="window.location.href = '/Hero/Index'" hidden><span class="glyphicon glyphicon-chevron-left"></span> Назад</button>
-<button type="button" class="btn btn-default btn-lg" onclick="window.location.href = '/Hero/EditHero'" hidden><span class="glyphicon glyphicon-pencil"></span> Редактировать героя</button>
+<button type="button" class="btn btn-default btn-lg" onclick="window.location.href = '/Hero/EditHero?idHero=@Model.Id'" hidden><span class="glyphicon glyphicon-pencil"></span> Редактировать героя</button>
 
 <h2>@Html.DisplayFor(model => model.Name) @Html.Label("Уровень " + Model.Level, new { @class = "label label-primary" })</h2>
 
 <div class="row">
     <div class="col-md-1">
-        @ViewBag.MinXP
+        @Model.MinXP
     </div>
     <div class="col-md-10">
     </div>
     <div class="col-md-1" align="right">
-        @ViewBag.MaxXP
+        @Model.MaxXP
     </div>
 </div>
 
 <div class="progress">
-    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: @ViewBag.XPinPercent%;">
+    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: @Model.XPinPercent%;">
         @Model.XP
     </div>
 </div>
 
-<button type="button" class="btn btn-default btn-lg" onclick="window.location.href = '/Hero/AddXp?xp=150'"><span class="glyphicon glyphicon-flash"></span> Прокачать (+150 XP)</button>
+<button type="button" class="btn btn-default btn-lg" onclick="window.location.href = '/Hero/AddXp?xp=150&idHero=@Model.Id'"><span class="glyphicon glyphicon-flash"></span> Прокачать (+150 XP)</button>
 
 <div id="modDialog" class="modal fade">
     <div id="dialogContent" class="modal-dialog"></div>
@@ -64,7 +64,7 @@
                                 @Html.DisplayFor(modelItem => item.Name)
                             </td>
                             <td>
-                                @Html.ActionLink("Удалить", "DeletePower", new { idPower = item.Id }, null)
+                                @Html.ActionLink("Удалить", "DeletePower", new { idPower = item.Id, idHero = Model.Id }, null)
                             </td>
                         </tr>
                     }
@@ -90,7 +90,7 @@
         $(function () {
             $.ajaxSetup({ cache: false });
             $('#ListPowers').click(function () {
-                $.get("/Hero/ListPowers/", function (data) {
+                $.get("/Hero/ListPowers?idHero=@Model.Id", function (data) {
                     $('#dialogContent').html(data);
                     $('#modDialog').modal('show');
                 });
