@@ -5,15 +5,21 @@ using System.Web;
 using System.Web.Mvc;
 using System.IO;
 using CodeFirst;
+using CodeFirst.Repositories;
 
 namespace HeroApp.Controllers
 {
     [Authorize]
     public class PowerController : Controller
     {
-        private static readonly HeroContext _db = new HeroContext();
-        readonly PowerRepository _powerRep = new PowerRepository(_db);
-        readonly ImageRepository _imgRep = new ImageRepository(_db);
+        private readonly IGenericRepository<Power> _powerRep;
+        private readonly IGenericRepository<Image> _imgRep;
+
+        public PowerController(IGenericRepository<Power> powerRep, IGenericRepository<Image> imgRep)
+        {
+            _powerRep = powerRep;
+            _imgRep = imgRep;
+        }
 
         // GET: Power
         public ActionResult Index()

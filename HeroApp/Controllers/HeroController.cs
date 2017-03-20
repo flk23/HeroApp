@@ -6,16 +6,23 @@ using System.Web.Mvc;
 using HeroApp.Models;
 using CodeFirst;
 using System.IO;
+using CodeFirst.Repositories;
 
 namespace HeroApp.Controllers
 {
     [Authorize]
     public class HeroController : Controller
     {
-        private static readonly HeroContext _db = new HeroContext();
-        readonly HeroRepository _heroRep = new HeroRepository(_db);
-        readonly PowerRepository _powerRep = new PowerRepository(_db);
-        readonly ImageRepository _imgRep = new ImageRepository(_db);
+        private readonly IGenericRepository<Power> _powerRep;
+        private readonly IGenericRepository<Hero> _heroRep;
+        private readonly IGenericRepository<Image> _imgRep;
+
+        public HeroController(IGenericRepository<Power> powerRep, IGenericRepository<Hero> heroRep, IGenericRepository<Image> imgRep)
+        {
+            _powerRep = powerRep;
+            _heroRep = heroRep;
+            _imgRep = imgRep;
+        }
 
         // GET: Hero
         public ActionResult Index()
@@ -78,7 +85,8 @@ namespace HeroApp.Controllers
 
                 foreach (var addedPower in addedPowers)
                 {
-                    allowPowers.Remove(addedPower);
+                    //allowPowers.Remove(addedPower);
+                    allowPowers.RemoveAll(p => p.Id == addedPower.Id);
                 }
             }
 
@@ -90,8 +98,11 @@ namespace HeroApp.Controllers
             Guid idHero = new Guid(TempData["IdHero"].ToString());
             var hero = _heroRep.Get(idHero);
             var power = _powerRep.Get(idPower);
+            if (hero.Powers == null)
+            {
+                hero.Powers = new List<Power>();
+            }
             hero.Powers.Add(power);
-            _db.SaveChanges();
 
             return RedirectToAction("Details", new { idHero });
         }
@@ -102,7 +113,6 @@ namespace HeroApp.Controllers
             var hero = _heroRep.Get(idHero);
             var power = _powerRep.Get(idPower);
             hero.Powers.Remove(power);
-            _db.SaveChanges();
 
             return RedirectToAction("Details", new { idHero });
         }
@@ -114,8 +124,7 @@ namespace HeroApp.Controllers
             hero.XP += xp;
             LevelSystem level = new LevelSystem(hero.XP);
             hero.Level = level.Level;
-
-            _db.SaveChanges();
+            _heroRep.Update(hero);
 
             return RedirectToAction("Details", new { idHero });
         }
@@ -154,7 +163,7 @@ namespace HeroApp.Controllers
                     }
                     updateHero.Image.Img = imageData;
                 }
-                _db.SaveChanges();
+                _heroRep.Update(updateHero);
 
                 return RedirectToAction("Details", new { idHero = updateHero.Id });
             }

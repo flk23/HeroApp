@@ -1,3 +1,5 @@
+using CodeFirst.Repositories;
+
 namespace CodeFirst.Migrations
 {
     using System;
@@ -5,7 +7,7 @@ namespace CodeFirst.Migrations
     using System.Data.Entity.Migrations;
     using System.Linq;
 
-    internal sealed class Configuration : DbMigrationsConfiguration<CodeFirst.HeroContext>
+    internal sealed class Configuration : DbMigrationsConfiguration<HeroContext>
     {
         public Configuration()
         {
@@ -13,7 +15,7 @@ namespace CodeFirst.Migrations
             ContextKey = "CodeFirst.HeroContext";
         }
 
-        protected override void Seed(CodeFirst.HeroContext context)
+        protected override void Seed(HeroContext context)
         {
             //  This method will be called after migrating to the latest version.
 
